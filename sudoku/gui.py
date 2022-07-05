@@ -1,3 +1,4 @@
+
 from validate import Solve
 import validate
 from populateSudoku import getSudoku
@@ -23,10 +24,12 @@ print(solvedGrid)
 
 
 original_element_color = (52, 52, 52)
+inserted_element_color = (0, 22, 255)
 correct_element_color = (0, 255, 52)
 wrong_element_color = (255, 0, 0)
 numberFont = pygame.font.SysFont(None, 50)
-
+textFont = pygame.font.SysFont(None, 50)
+validate = False
 
 bg = pygame.image.load('Sudoku.png')
 print(bg)
@@ -75,9 +78,10 @@ def insertNum(win, position):
 
 
 def reDraw(win, grid):
-    win.fill((0, 0, 0))
     win.blit(bg, (0, 0))
+    global validate
     w = Width/9
+    w -= 1
     for i in range(0, len(grid[0])):
         for j in range(0, len(grid[0])):
             if(0 < grid[i][j] < 10):
@@ -86,23 +90,39 @@ def reDraw(win, grid):
                 if(grid[i][j] == originalGrid[i][j]):
                     color = original_element_color
                 elif (grid[i][j] == solvedGrid[i][j]):
-                    color = correct_element_color
+                    color = correct_element_color if validate else inserted_element_color
                 else:
-                    color = wrong_element_color
+                    color = wrong_element_color if validate else inserted_element_color
 
                 value = numberFont.render(
                     str(grid[i][j]), True, color)
 
                 win.blit(value, ((j)*w+20, (i)*w+20))
 
+    validate = False
     pygame.display.update()
+
+
+def SolveSudo(win):
+    grid = solvedGrid
+    reDraw(win, grid)
 
 
 def main():
 
-    win = pygame.display.set_mode((Width, Height))
-
+    win = pygame.display.set_mode((Width, Height+100))
+    win.fill((0, 0, 0))
     pygame.display.set_caption("Sudoku")
+
+    # buttons
+    pygame.draw.rect(win, (100, 100, 100), [
+                     0, Height, Width/2, 100], border_radius=5)
+    pygame.draw.rect(win, (100, 100, 100), [
+                     Width/2, Height, Width/2, 100],  border_radius=5)
+    validateText = textFont.render('VALIDATE', True, (32, 23, 100))
+    solveText = textFont.render('SOLVE', True, (32, 23, 100))
+    win.blit(validateText, (50, Height+40))
+    win.blit(solveText, (Width/2+75, Height+40))
 
     reDraw(win, grid)
 
@@ -114,7 +134,29 @@ def main():
                 return
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:  # left click on mouse
                 pos = pygame.mouse.get_pos()
-                insertNum(win, (pos[0], pos[1]))
+                if pos[1] <= Height:
+                    insertNum(win, (pos[0], pos[1]))
+                elif pos[0] <= Width/2:
+                    print("Validate")
+                    global validate
+                    validate = True
+                    reDraw(win, grid)
+                else:
+                    print("Solve")
+                    SolveSudo(win)
+
+        # # if mouse hover over buttons
+        # mouse = pygame.mouse.get_pos()
+        # if width/2 <= mouse[0] <= width/2+140 and height/2 <= mouse[1] <= height/2+40:
+        #     pygame.draw.rect(screen,color_light,[width/2,height/2,140,40])
+
+        # else:
+        #     pygame.draw.rect(screen,color_dark,[width/2,height/2,140,40])
+
+        # # superimposing the text onto our button
+        # screen.blit(text , (width/2+50,height/2))
+
+        # pygame.display.update()
 
 
 main()
